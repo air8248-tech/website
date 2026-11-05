@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>網頁結構介紹</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            background-color: #f4f7fb;
+            color: #333;
+            line-height: 1.8;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 17px;
+        }
+
+        nav {
+            background-color: #ffffff;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 8px #00000010;
+            position: sticky;
+            top: 0;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #2563eb;
+            margin: 0 15px;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            color: #7c3aed;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .category {
+            margin-bottom: 50px;
+            scroll-margin-top: 80px;
+        }
+
+        .category h2 {
+            color: #1e40af;
+            border-left: 6px solid #6366f1;
+            padding-left: 15px;
+            margin-bottom: 20px;
+            font-size: 25px;
+        }
+
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background-color: white;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px #0000000d;
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 22px #00000015;
+        }
+
+        .card h3 {
+            color: #4338ca;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .card p {
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .card ul {
+            padding-left: 25px;
+            color: #555;
+        }
+
+        .tag {
+            display: inline-block;
+            background-color: #e0e7ff;
+            color: #3730a3;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            background-color: #1e293b;
+            color: white;
+            text-align: center;
+            padding: 25px;
+            margin-top: 50px;
+        }
+
+        @media (max-width: 650px) {
+            header h1 {
+                font-size: 28px;
+            }
+
+            nav a {
+                display: inline-block;
+                margin: 5px 8px;
+            }
+
+            .card-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>常見的網頁結構</h1>
+        <p>認識網站設計中的重要頁面與功能</p>
+    </header>
+
+    <nav>
+        <a href="#category1">核心導覽</a>
+        <a href="#category2">產品與服務</a>
+        <a href="#category3">互動與轉換</a>
+        <a href="#category4">內容與支援</a>
+    </nav>
+
+    <main>
+
+        <!-- 第一類 -->
+        <section class="category" id="category1">
+            <h2>01. 核心導覽與品牌介紹類</h2>
+
+            <div class="card-container">
+
+                <article class="card">
+                    <span class="tag">網站入口</span>
+                    <h3>首頁（Home Page）</h3>
+                    <p>網站的入口頁面，負責整合資訊與導覽，幫助使用者快速找到需要的內容，就像百貨公司的服務台。</p>
+                </article>
+
+                <article class="card">
+                    <span class="tag">品牌介紹</span>
+                    <h3>關於我們（About Us）</h3>
+                    <p>介紹企業背景、品牌理念、團隊成員及創辦故事，幫助建立品牌形象與使用者的信任感。</p>
+                </article>
+
+                <article class="card">
+                    <span class="tag">行銷推廣</span>
+                    <h3>落地頁（Landing Page）</h3>
+                    <p>以單一目標為主的網頁，常用於廣告或行銷活動，提升使用者採取行動的機會。</p>
+                    <ul>
+                        <li>立即報名</li>
+                        <li>下載資料</li>
+                        <li>購買商品</li>
+                        <li>預約體驗</li>
+                    </ul>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- 第二類 -->
+        <section class="category" id="category2">
+            <h2>02. 產品與服務展示類</h2>
+
+            <div class="card-container">
+
+                <article class="card">
+                    <span class="tag">商品總覽</span>
+                    <h3>產品／服務列表頁</h3>
+                    <p>展示網站提供的所有商品或服務，讓使用者能快速瀏覽及尋找目標項目。</p>
+                    <ul>
+                        <li>分類篩選（Filter）</li>
+                        <li>排序功能（Sort）</li>
+                        <li>搜尋功能（Search）</li>
+                    </ul>
+                </article>
+
+                <article class="card">
+                    <span class="tag">商品資訊</span>
+                    <h3>產品詳細頁（Product Detail Page）</h3>
+                    <p>針對單一商品提供完整介紹，讓使用者了解商品特色與購買方式。</p>
+                    <ul>
+                        <li>產品圖片與規格</li>
+                        <li>價格與使用特色</li>
+                        <li>加入購物車</li>
+                        <li>立即購買或預約</li>
+                    </ul>
+                </article>
+
+                <article class="card">
+                    <span class="tag">問題解答</span>
+                    <h3>常見問題頁（FAQ）</h3>
+                    <p>整理使用者經常提出的問題與解答，減少客服負擔，也有助於搜尋引擎最佳化（SEO）。</p>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- 第三類 -->
+        <section class="category" id="category3">
+            <h2>03. 互動與轉換類</h2>
+
+            <div class="card-container">
+
+                <article class="card">
+                    <span class="tag">聯絡資訊</span>
+                    <h3>聯絡我們（Contact Us）</h3>
+                    <p>提供使用者與企業聯繫的方式，方便雙方進行溝通。</p>
+                    <ul>
+                        <li>聯絡表單</li>
+                        <li>電子郵件與電話</li>
+                        <li>地圖與公司位置</li>
+                    </ul>
+                </article>
+
+                <article class="card">
+                    <span class="tag">網站搜尋</span>
+                    <h3>搜尋結果頁（Search Results Page）</h3>
+                    <p>當使用者輸入關鍵字後，網站會顯示符合條件的搜尋結果，方便快速找到資訊。</p>
+                </article>
+
+                <article class="card">
+                    <span class="tag">購物流程</span>
+                    <h3>結帳流程頁（Checkout Flow）</h3>
+                    <p>電子商務網站的重要頁面，協助使用者完成購物與付款。</p>
+                    <ul>
+                        <li>確認購物車商品</li>
+                        <li>填寫收件資訊</li>
+                        <li>選擇付款方式</li>
+                        <li>確認訂單</li>
+                    </ul>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- 第四類 -->
+        <section class="category" id="category4">
+            <h2>04. 內容與支援類</h2>
+
+            <div class="card-container">
+
+                <article class="card">
+                    <span class="tag">內容發布</span>
+                    <h3>部落格／最新消息（Blog / News）</h3>
+                    <p>發布教學文章、活動資訊、企業公告及相關內容，吸引使用者瀏覽，增加網站的自然流量。</p>
+                </article>
+
+                <article class="card">
+                    <span class="tag">錯誤處理</span>
+                    <h3>404 錯誤頁面（404 Error Page）</h3>
+                    <p>當使用者進入不存在或失效的網址時顯示，幫助使用者重新找到需要的資訊。</p>
+                    <ul>
+                        <li>返回首頁按鈕</li>
+                        <li>網站搜尋功能</li>
+                        <li>熱門內容推薦</li>
+                    </ul>
+                </article>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>常見的網頁結構介紹</p>
+        <p>認識網頁設計，打造更好的使用者體驗</p>
+    </footer>
+
+</body>
+
+</html>

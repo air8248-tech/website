@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的第一份 HTML 示例</title>
+    <meta name="description" content="一個展示 HTML5 圖片與現代設計的簡潔示例頁面。">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            --primary: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.15);
+            --text-color: #111;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-gradient: linear-gradient(135deg, #2c3e50, #4ca1af);
+                --primary: #f0f0f0;
+                --card-bg: rgba(0, 0, 0, 0.35);
+                --text-color: #eee;
+            }
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            max-width: 90%;
+        }
+
+        img {
+            max-width: 200px;
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        img:hover {
+            transform: scale(1.05);
+        }
+
+        h1 {
+            margin: 1rem 0 0.5rem;
+            font-weight: 600;
+        }
+
+        h2 {
+            margin: 0.5rem 0 1rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        p {
+            margin: 0.5rem 0 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card" role="main">
+        <img src="./HTML5.png" alt="HTML5 徽标">
+        <h1>Hello! HTML5</h1>
+        <h2>好想睡覺！</h2>
+        <p>這是一個簡單且具備現代視覺效果的示例頁面。</p>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企業內部產品進銷存管理系統</title>
+    <meta name="description" content="企業內部產品進銷存管理系統，提供即時庫存查詢、銷售分析與報表功能，支援暗色模式與流暢介面。">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Microsoft JhengHei', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', 'Microsoft JhengHei', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 flex flex-col min-h-screen">
+
+    <!-- Toast Alert Notification Area -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+    </div>
+
+    <!-- Header Navigation Bar -->
+    <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & Brand Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="bg-blue-600 text-white p-2 rounded-lg shadow-md">
+                        <i class="fa-solid font-bold fa-boxes-stacked text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-lg tracking-wide block">PRO-INVENTORY</span>
+                        <span class="text-xs text-slate-400 block -mt-1">企業進銷存管理系統</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation Tabs -->
+                <nav class="hidden md:flex space-x-1" id="desktop-nav">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard"
+                        class="nav-btn px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 flex items-center space-x-2 bg-slate-800 text-white">
+                        <i class="fa-solid fa-chart-line text-blue-400"></i>
+                        <span>儀表板</span>
+                    </button>
+                    <button onclick="switchTab('transaction')" id="nav-transaction"
+                        class="nav-btn px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 flex items-center space-x-2 text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-solid fa-right-left text-emerald-400"></i>
+                        <span>進銷貨作業</span>
+                    </button>
+                    <button onclick="switchTab('inventory')" id="nav-inventory"
+                        class="nav-btn px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 flex items-center space-x-2 text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-solid fa-warehouse text-amber-400"></i>
+                        <span>庫存管理</span>
+                    </button>
+                    <button onclick="switchTab('history')" id="nav-history"
+                        class="nav-btn px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 flex items-center space-x-2 text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-solid fa-list-check text-purple-400"></i>
+                        <span>交易紀錄</span>
+                    </button>
+                    <button onclick="switchTab('master')" id="nav-master"
+                        class="nav-btn px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 flex items-center space-x-2 text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-solid fa-building-user text-indigo-400"></i>
+                        <span>廠商名冊</span>
+                    </button>
+                </nav>
+
+                <!-- Actions -->
+                <div class="flex items-center space-x-3">
+                    <button onclick="resetDemoData()" title="重置為範例資料"
+                        class="text-xs bg-slate-800 hover:bg-rose-900/50 text-slate-300 hover:text-rose-200 border border-slate-700 hover:border-rose-700 px-3 py-1.5 rounded-lg transition">
+                        <i class="fa-solid fa-rotate-left mr-1"></i> 重置範例
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div class="md:hidden bg-slate-800 px-2 pt-2 pb-3 space-y-1 border-t border-slate-700 flex justify-around">
+            <button onclick="switchTab('dashboard')"
+                class="mobile-nav-btn text-xs text-center py-2 px-1 text-slate-300 hover:text-white flex flex-col items-center">
+                <i class="fa-solid fa-chart-line text-base mb-1"></i>儀表板
+            </button>
+            <button onclick="switchTab('transaction')"
+                class="mobile-nav-btn text-xs text-center py-2 px-1 text-slate-300 hover:text-white flex flex-col items-center">
+                <i class="fa-solid fa-right-left text-base mb-1"></i>進銷貨
+            </button>
+            <button onclick="switchTab('inventory')"
+                class="mobile-nav-btn text-xs text-center py-2 px-1 text-slate-300 hover:text-white flex flex-col items-center">
+                <i class="fa-solid fa-warehouse text-base mb-1"></i>庫存
+            </button>
+            <button onclick="switchTab('history')"
+                class="mobile-nav-btn text-xs text-center py-2 px-1 text-slate-300 hover:text-white flex flex-col items-center">
+                <i class="fa-solid fa-list-check text-base mb-1"></i>歷史
+            </button>
+            <button onclick="switchTab('master')"
+                class="mobile-nav-btn text-xs text-center py-2 px-1 text-slate-300 hover:text-white flex flex-col items-center">
+                <i class="fa-solid fa-building-user text-base mb-1"></i>廠商
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ================= PAGE 1: DASHBOARD ================= -->
+        <section id="page-dashboard" class="page-content space-y-6">
+            <!-- Summary KPI Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- Total Products -->
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">總產品數</p>
+                        <h3 id="kpi-product-count" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+                        <p class="text-xs text-blue-600 mt-1">品項總數</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-box"></i>
+                    </div>
+                </div>
+
+                <!-- Total Inventory Quantity -->
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">總庫存量</p>
+                        <h3 id="kpi-total-stock" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+                        <p class="text-xs text-amber-600 mt-1">庫存總件數</p>
+                    </div>
+                    <div
+                        class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-warehouse"></i>
+                    </div>
+                </div>
+
+                <!-- Month Inbound Amount -->
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">本月進貨總額</p>
+                        <h3 id="kpi-month-in-amount" class="text-xl font-bold text-slate-800 mt-1">$0</h3>
+                        <p class="text-xs text-emerald-600 mt-1">本月採購支出</p>
+                    </div>
+                    <div
+                        class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-arrow-down-long"></i>
+                    </div>
+                </div>
+
+                <!-- Month Outbound Amount -->
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">本月銷貨總額</p>
+                        <h3 id="kpi-month-out-amount" class="text-xl font-bold text-slate-800 mt-1">$0</h3>
+                        <p class="text-xs text-blue-600 mt-1">本月營業收入</p>
+                    </div>
+                    <div
+                        class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-arrow-up-long"></i>
+                    </div>
+                </div>
+
+                <!-- Low Stock Count -->
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">低庫存警示</p>
+                        <h3 id="kpi-low-stock-count" class="text-2xl font-bold text-rose-600 mt-1">0</h3>
+                        <p class="text-xs text-rose-500 mt-1">低於安全水位</p>
+                    </div>
+                    <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Main Trend Chart (2 Cols) -->
+                <div class="lg:col-span-2 bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-area text-blue-600"></i> 近半個月進銷貨走勢圖
+                        </h2>
+                        <span class="text-xs text-slate-400">每日數量統計</span>
+                    </div>
+                    <div class="h-64 relative">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Stock Category Distribution Pie Chart (1 Col) -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                    <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-pie-chart text-indigo-600"></i> 產品庫存分類佔比
+                    </h2>
+                    <div class="h-56 relative flex-grow">
+                        <canvas id="categoryPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-slate-600"></i> 近期交易紀錄
+                    </h2>
+                    <button onclick="switchTab('history')"
+                        class="text-xs text-blue-600 hover:text-blue-800 font-semibold">
+                        查看全部 <i class="fa-solid fa-chevron-right ml-0.5"></i>
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3">時間</th>
+                                <th class="px-4 py-3">作業類型</th>
+                                <th class="px-4 py-3">產品名稱</th>
+                                <th class="px-4 py-3 text-right">數量</th>
+                                <th class="px-4 py-3 text-right">單價</th>
+                                <th class="px-4 py-3 text-right">總金額</th>
+                                <th class="px-4 py-3">廠商 / 客戶</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-recent-tx-body" class="divide-y divide-slate-100">
+                            <!-- Dynamic Content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 2: TRANSACTION ENTRY ================= -->
+        <section id="page-transaction" class="page-content hidden">
+            <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-800 text-white p-5 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-pen-to-square text-emerald-400"></i> 進銷貨單據登記
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">選取交易類別、產品及供應商/客戶，系統將自動校驗並更新庫存</p>
+                    </div>
+                    <span id="stock-warning-pill"
+                        class="hidden bg-rose-500 text-white text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1 animate-pulse">
+                        <i class="fa-solid fa-triangle-exclamation"></i> 庫存不足警示
+                    </span>
+                </div>
+
+                <form id="tx-form" onsubmit="handleTransactionSubmit(event)" class="p-6 space-y-5">
+
+                    <!-- Operation Type Switch -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">交易類型 <span
+                                class="text-rose-500">*</span></label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <label
+                                class="relative flex items-center justify-center p-3 border-2 rounded-xl cursor-pointer transition hover:bg-slate-50 text-center font-bold border-emerald-500 text-emerald-700 bg-emerald-50/30"
+                                id="type-label-inbound">
+                                <input type="radio" name="txType" value="IN" checked onchange="updateTxTypeUI()"
+                                    class="sr-only">
+                                <i class="fa-solid fa-circle-down mr-2 text-lg"></i> 進貨 (Inbound)
+                            </label>
+                            <label
+                                class="relative flex items-center justify-center p-3 border-2 rounded-xl cursor-pointer transition hover:bg-slate-50 text-center font-bold border-slate-200 text-slate-600"
+                                id="type-label-outbound">
+                                <input type="radio" name="txType" value="OUT" onchange="updateTxTypeUI()"
+                                    class="sr-only">
+                                <i class="fa-solid fa-circle-up mr-2 text-lg"></i> 銷貨 (Outbound)
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Product Selection & Vendor Selection -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="tx-product-select" class="block text-sm font-semibold text-slate-700 mb-1">
+                                產品名稱 <span class="text-rose-500">*</span>
+                            </label>
+                            <select id="tx-product-select" required onchange="onTxProductChange()"
+                                class="w-full rounded-lg border-slate-300 border p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="">-- 請選擇產品 --</option>
+                            </select>
+                            <p id="tx-product-stock-hint" class="text-xs text-slate-500 mt-1">目前庫存量: <span
+                                    class="font-bold text-slate-700" id="hint-stock-val">-</span> | 參考單價: $<span
+                                    id="hint-price-val">-</span></p>
+                        </div>
+
+                        <div>
+                            <label for="tx-vendor-select" class="block text-sm font-semibold text-slate-700 mb-1">
+                                廠商 / 客戶名稱 <span class="text-rose-500">*</span>
+                            </label>
+                            <select id="tx-vendor-select" required
+                                class="w-full rounded-lg border-slate-300 border p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="">-- 請選擇廠商/客戶 --</option>
+                            </select>
+                            <p class="text-xs text-slate-400 mt-1">可至「廠商名冊」維護供應商與客戶資料</p>
+                        </div>
+                    </div>
+
+                    <!-- Quantity & Unit Price -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="tx-qty" class="block text-sm font-semibold text-slate-700 mb-1">
+                                數量 <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="number" id="tx-qty" min="1" step="1" required placeholder="例如：50"
+                                oninput="calculateTxTotal()"
+                                class="w-full rounded-lg border-slate-300 border p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+
+                        <div>
+                            <label for="tx-price" class="block text-sm font-semibold text-slate-700 mb-1">
+                                單價 (NT$) <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="number" id="tx-price" min="0" step="0.1" required placeholder="例如：1200"
+                                oninput="calculateTxTotal()"
+                                class="w-full rounded-lg border-slate-300 border p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">自動計算總金額</label>
+                            <div class="w-full rounded-lg bg-slate-100 border border-slate-200 p-2.5 text-base font-bold text-slate-800 text-right"
+                                id="tx-total-display">
+                                $0
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date Picker & Operator -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="tx-datetime" class="block text-sm font-semibold text-slate-700 mb-1">
+                                進出貨時間 <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="datetime-local" id="tx-datetime" required
+                                class="w-full rounded-lg border-slate-300 border p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+
+                        <div>
+                            <label for="tx-operator" class="block text-sm font-semibold text-slate-700 mb-1">
+                                經辦人員
+                            </label>
+                            <input type="text" id="tx-operator" placeholder="例如：王經理"
+                                class="w-full rounded-lg border-slate-300 border p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Note Field -->
+                    <div>
+                        <label for="tx-note" class="block text-sm font-semibold text-slate-700 mb-1">備註 / 採購單號 /
+                            訂單編號</label>
+                        <input type="text" id="tx-note" placeholder="例如：採購單 PO-20261015 / 專案急件出貨"
+                            class="w-full rounded-lg border-slate-300 border p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+
+                    <!-- Validation / Insufficient Stock Alert Box -->
+                    <div id="tx-error-box"
+                        class="hidden p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-500 text-lg"></i>
+                        <span id="tx-error-msg">銷貨數量大於目前庫存，無法執行！</span>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="pt-3 border-t border-slate-100 flex justify-end space-x-3">
+                        <button type="button" onclick="resetTxForm()"
+                            class="px-5 py-2.5 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium transition">
+                            重置
+                        </button>
+                        <button type="submit"
+                            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg shadow transition flex items-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> 確認送出並更新庫存
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 3: INVENTORY MANAGEMENT ================= -->
+        <section id="page-inventory" class="page-content hidden space-y-4">
+            <!-- Search & Filter Controls -->
+            <div
+                class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-3 items-center justify-between">
+                <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto flex-1">
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+                        <input type="text" id="inv-search" oninput="renderInventoryTable()" placeholder="搜尋產品編號或名稱..."
+                            class="pl-9 pr-3 py-2 w-full text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+
+                    <select id="inv-filter-category" onchange="renderInventoryTable()"
+                        class="text-sm border border-slate-300 rounded-lg py-2 px-3 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="">所有產品分類</option>
+                    </select>
+
+                    <select id="inv-filter-status" onchange="renderInventoryTable()"
+                        class="text-sm border border-slate-300 rounded-lg py-2 px-3 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="ALL">所有庫存狀態</option>
+                        <option value="LOW">低於安全水位 (警示)</option>
+                        <option value="NORMAL">庫存正常</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="openProductModal()"
+                        class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg font-medium shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> 新增產品
+                    </button>
+                </div>
+            </div>
+
+            <!-- Inventory Data Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3">產品編號 / 分類</th>
+                                <th class="px-4 py-3">產品名稱</th>
+                                <th class="px-4 py-3 text-right">安全水位</th>
+                                <th class="px-4 py-3 text-right">累積進貨</th>
+                                <th class="px-4 py-3 text-right">累積銷貨</th>
+                                <th class="px-4 py-3 text-right">目前庫存</th>
+                                <th class="px-4 py-3 text-right">平均單價</th>
+                                <th class="px-4 py-3 text-center">庫存狀態</th>
+                                <th class="px-4 py-3 text-center">快捷操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body" class="divide-y divide-slate-100">
+                            <!-- Dynamic Content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 4: TRANSACTION HISTORY & REPORTS ================= -->
+        <section id="page-history" class="page-content hidden space-y-4">
+            <!-- Filter & Export Toolbar -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">交易類型</label>
+                        <select id="hist-filter-type" onchange="renderHistoryTable()"
+                            class="w-full text-sm border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="ALL">全部 (進貨/銷貨)</option>
+                            <option value="IN">僅進貨 (IN)</option>
+                            <option value="OUT">僅銷貨 (OUT)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">起始日期</label>
+                        <input type="date" id="hist-start-date" onchange="renderHistoryTable()"
+                            class="w-full text-sm border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">結束日期</label>
+                        <input type="date" id="hist-end-date" onchange="renderHistoryTable()"
+                            class="w-full text-sm border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">篩選產品</label>
+                        <select id="hist-filter-product" onchange="renderHistoryTable()"
+                            class="w-full text-sm border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="ALL">所有產品</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">篩選廠商/客戶</label>
+                        <select id="hist-filter-vendor" onchange="renderHistoryTable()"
+                            class="w-full text-sm border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="ALL">所有廠商/客戶</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center border-t border-slate-100 pt-3">
+                    <span id="hist-count-info" class="text-xs text-slate-500">共 0 筆交易紀錄</span>
+                    <button onclick="exportCSV()"
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-2 rounded-lg font-medium shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-csv text-sm"></i> 匯出 CSV 報表
+                    </button>
+                </div>
+            </div>
+
+            <!-- History List Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3">單號與時間</th>
+                                <th class="px-4 py-3">類型</th>
+                                <th class="px-4 py-3">產品名稱</th>
+                                <th class="px-4 py-3 text-right">數量</th>
+                                <th class="px-4 py-3 text-right">單價</th>
+                                <th class="px-4 py-3 text-right">總金額</th>
+                                <th class="px-4 py-3">廠商 / 客戶</th>
+                                <th class="px-4 py-3">經辦</th>
+                                <th class="px-4 py-3">備註</th>
+                                <th class="px-4 py-3 text-center">刪除</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body" class="divide-y divide-slate-100">
+                            <!-- Dynamic Content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 5: SUPPLIERS & CUSTOMERS DIRECTORY ================= -->
+        <section id="page-master" class="page-content hidden space-y-4">
+            <!-- Toolbar -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="relative w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+                        <input type="text" id="vendor-search" oninput="renderMasterVendorsTable()"
+                            placeholder="搜尋廠商/客戶名稱..."
+                            class="pl-9 pr-3 py-2 w-full text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                </div>
+                <button onclick="openVendorModal()"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg font-medium shadow transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i> 新增廠商/客戶
+                </button>
+            </div>
+
+            <!-- Vendors Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3">名稱</th>
+                                <th class="px-4 py-3">性質分類</th>
+                                <th class="px-4 py-3">聯絡人</th>
+                                <th class="px-4 py-3">電話</th>
+                                <th class="px-4 py-3">地址</th>
+                                <th class="px-4 py-3 text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="master-vendor-table-body" class="divide-y divide-slate-100">
+                            <!-- Dynamic List -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 py-4 text-xs text-center mt-auto">
+        <p>公司內部產品進銷存管理系統 &copy; 2026 Enterprise Inventory Solution. All Rights Reserved.</p>
+    </footer>
+
+
+    <!-- ================= MODAL: ADD / EDIT PRODUCT ================= -->
+    <div id="product-modal"
+        class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 id="product-modal-title" class="font-bold text-lg text-slate-800">新增產品</h3>
+                <button onclick="closeProductModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="product-form" onsubmit="saveProductModal(event)" class="space-y-4 text-sm">
+                <input type="hidden" id="p-modal-id">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">產品編號 / SKU <span
+                            class="text-rose-500">*</span></label>
+                    <input type="text" id="p-modal-sku" required placeholder="例如：PROD-101"
+                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">產品名稱 <span
+                            class="text-rose-500">*</span></label>
+                    <input type="text" id="p-modal-name" required placeholder="例如：高階商務筆記型電腦"
+                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">產品分類</label>
+                    <input type="text" id="p-modal-category" placeholder="例如：電子設備"
+                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">安全水位</label>
+                        <input type="number" id="p-modal-minstock" min="0" value="10"
+                            class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">建議參考單價</label>
+                        <input type="number" id="p-modal-price" min="0" step="0.1" value="1000"
+                            class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-2 border-t border-slate-100 pt-3">
+                    <button type="button" onclick="closeProductModal()"
+                        class="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-50">取消</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow">儲存產品</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: ADD / EDIT VENDOR/CUSTOMER ================= -->
+    <div id="vendor-modal"
+        class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 id="vendor-modal-title" class="font-bold text-lg text-slate-800">新增廠商/客戶</h3>
+                <button onclick="closeVendorModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="vendor-form" onsubmit="saveVendorModal(event)" class="space-y-4 text-sm">
+                <input type="hidden" id="v-modal-id">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">名稱 (公司/客戶) <span
+                            class="text-rose-500">*</span></label>
+                    <input type="text" id="v-modal-name" required placeholder="例如：創科電子股份有限公司"
+                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">性質分類 <span
+                            class="text-rose-500">*</span></label>
+                    <select id="v-modal-type"
+                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="供應商">供應商 (進貨來源)</option>
+                        <option value="客戶">客戶 (銷貨對象)</option>
+                        <option value="皆是">皆是 (供應商兼客戶)</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">聯絡人</label>
+                        <input type="text" id="v-modal-contact" placeholder="例如：林經理"
+                            class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">電話</label>
+                        <input type="text" id="v-modal-phone" placeholder="例如：02-23456789"
+                            class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">公司地址</label>
+                    <input type="text" id="v-modal-address" placeholder="例如：台北市內科學園路一段88號"
+                        class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div class="flex justify-end space-x-2 border-t border-slate-100 pt-3">
+                    <button type="button" onclick="closeVendorModal()"
+                        class="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-50">取消</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow">儲存資料</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        // --- INITIAL DEFAULT DEMO DATA ---
+        const DEFAULT_PRODUCTS = [
+            { id: 'P001', sku: 'PROD-101', name: '27吋 4K 專業顯示器', category: '電腦週邊', minStock: 5, defaultPrice: 8500 },
+            { id: 'P002', sku: 'PROD-102', name: '高階人體工學辦公椅', category: '辦公家具', minStock: 8, defaultPrice: 3200 },
+            { id: 'P003', sku: 'PROD-103', name: '機械式 RGB 鍵盤滑鼠組', category: '電腦週邊', minStock: 15, defaultPrice: 2100 },
+            { id: 'P004', sku: 'PROD-104', name: '多功能 USB-C 擴充集線器', category: '3C配件', minStock: 20, defaultPrice: 750 },
+            { id: 'P005', sku: 'PROD-105', name: '商務無線抗噪藍牙耳機', category: '3C配件', minStock: 6, defaultPrice: 3600 }
+        ];
+
+        const DEFAULT_VENDORS = [
+            { id: 'V001', name: '極光科技股份有限公司', type: '供應商', contact: '林專員', phone: '02-87654321', address: '台北市信義區信義路五段7號' },
+            { id: 'V002', name: '聯創辦公設備有限公司', type: '供應商', contact: '張經理', phone: '04-22334455', address: '台中市西屯區台灣大道三段99號' },
+            { id: 'V003', name: '宏遠企業採購部', type: '客戶', contact: '王課長', phone: '07-33445566', address: '高雄市前鎮區成功二路25號' },
+            { id: 'V004', name: '全方位數位行銷', type: '客戶', contact: '陳總監', phone: '02-29998877', address: '新北市板橋區中山路一段161號' }
+        ];
+
+        const DEFAULT_TRANSACTIONS = [
+            { id: 'TX-101', type: 'IN', productId: 'P001', vendorId: 'V001', qty: 20, price: 8500, datetime: getISOOffsetDate(-10), operator: '王經理', note: '首季常態進貨' },
+            { id: 'TX-102', type: 'IN', productId: 'P002', vendorId: 'V002', qty: 12, price: 3200, datetime: getISOOffsetDate(-8), operator: '李專員', note: '辦公室擴編採購' },
+            { id: 'TX-103', type: 'IN', productId: 'P003', vendorId: 'V001', qty: 30, price: 2100, datetime: getISOOffsetDate(-6), operator: '王經理', note: '周邊備貨' },
+            { id: 'TX-104', type: 'OUT', productId: 'P001', vendorId: 'V003', qty: 4, price: 10200, datetime: getISOOffsetDate(-4), operator: '陳專員', note: '客戶專案出貨' },
+            { id: 'TX-105', type: 'OUT', productId: 'P003', vendorId: 'V004', qty: 18, price: 2600, datetime: getISOOffsetDate(-2), operator: '李專員', note: '行銷部門配發' },
+            { id: 'TX-106', type: 'IN', productId: 'P004', vendorId: 'V001', qty: 25, price: 750, datetime: getISOOffsetDate(-1), operator: '王經理', note: '補貨庫存' }
+        ];
+
+        // --- GLOBAL STATE ---
+        let products = [];
+        let vendors = [];
+        let transactions = [];
+        let trendChartInstance = null;
+        let categoryPieChartInstance = null;
+
+        // --- HELPER DATES ---
+        function getISOOffsetDate(daysOffset) {
+            const d = new Date();
+            d.setDate(d.getDate() + daysOffset);
+            const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+            return (new Date(d - tzoffset)).toISOString().slice(0, 16);
+        }
+
+        // --- APP INITIALIZATION ---
+        window.onload = function () {
+            loadDataFromStorage();
+            initDateTimePicker();
+            updateAllViews();
+        };
+
+        function loadDataFromStorage() {
+            const p = localStorage.getItem('pro_inv_products');
+            const v = localStorage.getItem('pro_inv_vendors');
+            const t = localStorage.getItem('pro_inv_txs');
+
+            products = p ? JSON.parse(p) : [...DEFAULT_PRODUCTS];
+            vendors = v ? JSON.parse(v) : [...DEFAULT_VENDORS];
+            transactions = t ? JSON.parse(t) : [...DEFAULT_TRANSACTIONS];
+
+            saveDataToStorage();
+        }
+
+        function saveDataToStorage() {
+            localStorage.setItem('pro_inv_products', JSON.stringify(products));
+            localStorage.setItem('pro_inv_vendors', JSON.stringify(vendors));
+            localStorage.setItem('pro_inv_txs', JSON.stringify(transactions));
+        }
+
+        function resetDemoData() {
+            if (confirm('確定要將所有系統資料重置為初始示範資料嗎？')) {
+                localStorage.removeItem('pro_inv_products');
+                localStorage.removeItem('pro_inv_vendors');
+                localStorage.removeItem('pro_inv_txs');
+                loadDataFromStorage();
+                updateAllViews();
+                showToast('已成功恢復預設示範資料！', 'success');
+            }
+        }
+
+        function initDateTimePicker() {
+            document.getElementById('tx-datetime').value = getISOOffsetDate(0);
+        }
+
+        // --- NAVIGATION LOGIC ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`page-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-slate-800', 'text-white');
+                btn.classList.add('text-slate-300');
+            });
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-slate-800', 'text-white');
+                activeBtn.classList.remove('text-slate-300');
+            }
+
+            if (tabId === 'dashboard') {
+                renderDashboardCharts();
+            } else if (tabId === 'inventory') {
+                renderInventoryTable();
+            } else if (tabId === 'history') {
+                renderHistoryTable();
+            } else if (tabId === 'master') {
+                renderMasterVendorsTable();
+            }
+        }
+
+        // --- COMPUTATION ENGINE ---
+        function calculateProductStockMap() {
+            const stockMap = {};
+
+            products.forEach(p => {
+                stockMap[p.id] = {
+                    inboundQty: 0,
+                    outboundQty: 0,
+                    stock: 0,
+                    totalInboundCost: 0,
+                    avgPrice: 0
+                };
+            });
+
+            transactions.forEach(tx => {
+                if (!stockMap[tx.productId]) return;
+                const qty = Number(tx.qty) || 0;
+                const price = Number(tx.price) || 0;
+
+                if (tx.type === 'IN') {
+                    stockMap[tx.productId].inboundQty += qty;
+                    stockMap[tx.productId].stock += qty;
+                    stockMap[tx.productId].totalInboundCost += (qty * price);
+                } else if (tx.type === 'OUT') {
+                    stockMap[tx.productId].outboundQty += qty;
+                    stockMap[tx.productId].stock -= qty;
+                }
+            });
+
+            products.forEach(p => {
+                const item = stockMap[p.id];
+                if (item.inboundQty > 0) {
+                    item.avgPrice = item.totalInboundCost / item.inboundQty;
+                } else {
+                    item.avgPrice = p.defaultPrice || 0;
+                }
+            });
+
+            return stockMap;
+        }
+
+        function updateAllViews() {
+            populateSelectDropdowns();
+            renderDashboard();
+            renderInventoryTable();
+            renderHistoryTable();
+            renderMasterVendorsTable();
+        }
+
+        // --- DROPDOWN POPULATION ---
+        function populateSelectDropdowns() {
+            // Transaction Product Select
+            const txProdSelect = document.getElementById('tx-product-select');
+            txProdSelect.innerHTML = '<option value="">-- 請選擇產品 --</option>';
+            products.forEach(p => {
+                txProdSelect.innerHTML += `<option value="${p.id}">[${p.sku}] ${p.name}</option>`;
+            });
+
+            // Transaction Vendor Select (Supports both suppliers & customers)
+            const txVendSelect = document.getElementById('tx-vendor-select');
+            txVendSelect.innerHTML = '<option value="">-- 請選擇廠商 / 客戶 --</option>';
+            vendors.forEach(v => {
+                txVendSelect.innerHTML += `<option value="${v.id}">[${v.type}] ${v.name}</option>`;
+            });
+
+            // History Filter Options
+            const histProd = document.getElementById('hist-filter-product');
+            histProd.innerHTML = '<option value="ALL">所有產品</option>';
+            products.forEach(p => histProd.innerHTML += `<option value="${p.id}">${p.name}</option>`);
+
+            const histVend = document.getElementById('hist-filter-vendor');
+            histVend.innerHTML = '<option value="ALL">所有廠商/客戶</option>';
+            vendors.forEach(v => histVend.innerHTML += `<option value="${v.id}">${v.name}</option>`);
+
+            // Inventory Category Filter Options
+            const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+            const invCatFilter = document.getElementById('inv-filter-category');
+            invCatFilter.innerHTML = '<option value="">所有產品分類</option>';
+            categories.forEach(c => invCatFilter.innerHTML += `<option value="${c}">${c}</option>`);
+        }
+
+        // --- DASHBOARD RENDER ---
+        function renderDashboard() {
+            const stockMap = calculateProductStockMap();
+
+            let totalStockQty = 0;
+            let lowStockCount = 0;
+            let monthInAmount = 0;
+            let monthOutAmount = 0;
+
+            const now = new Date();
+            const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+            transactions.forEach(tx => {
+                const qty = Number(tx.qty);
+                const amount = qty * Number(tx.price);
+
+                if (tx.datetime && tx.datetime.startsWith(currentYearMonth)) {
+                    if (tx.type === 'IN') monthInAmount += amount;
+                    else if (tx.type === 'OUT') monthOutAmount += amount;
+                }
+            });
+
+            products.forEach(p => {
+                const stock = stockMap[p.id] ? stockMap[p.id].stock : 0;
+                totalStockQty += stock;
+                if (stock <= p.minStock) {
+                    lowStockCount++;
+                }
+            });
+
+            // Update KPI
+            document.getElementById('kpi-product-count').innerText = products.length;
+            document.getElementById('kpi-total-stock').innerText = totalStockQty.toLocaleString();
+            document.getElementById('kpi-month-in-amount').innerText = '$' + monthInAmount.toLocaleString();
+            document.getElementById('kpi-month-out-amount').innerText = '$' + monthOutAmount.toLocaleString();
+            document.getElementById('kpi-low-stock-count').innerText = lowStockCount;
+
+            // Recent Transactions (Limit 5)
+            const recentTxs = [...transactions].sort((a, b) => new Date(b.datetime) - new Date(a.datetime)).slice(0, 5);
+            const recentBody = document.getElementById('dashboard-recent-tx-body');
+            recentBody.innerHTML = '';
+
+            recentTxs.forEach(tx => {
+                const p = products.find(prod => prod.id === tx.productId) || { name: '已移除產品' };
+                const v = vendors.find(vend => vend.id === tx.vendorId) || { name: '已移除對象' };
+                const isIN = tx.type === 'IN';
+
+                recentBody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-4 py-2.5 text-slate-500 text-xs">${formatDateTime(tx.datetime)}</td>
+                        <td class="px-4 py-2.5">
+                            <span class="px-2 py-0.5 rounded text-xs font-bold ${isIN ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">
+                                ${isIN ? '進貨' : '銷貨'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2.5 font-medium text-slate-800">${p.name}</td>
+                        <td class="px-4 py-2.5 text-right font-semibold">${tx.qty}</td>
+                        <td class="px-4 py-2.5 text-right text-slate-500">$${Number(tx.price).toLocaleString()}</td>
+                        <td class="px-4 py-2.5 text-right font-bold">$${(tx.qty * tx.price).toLocaleString()}</td>
+                        <td class="px-4 py-2.5 text-slate-600">${v.name}</td>
+                    </tr>
+                `;
+            });
+
+            renderDashboardCharts();
+        }
+
+        // --- DASHBOARD CHARTS ---
+        function renderDashboardCharts() {
+            if (trendChartInstance) trendChartInstance.destroy();
+            if (categoryPieChartInstance) categoryPieChartInstance.destroy();
+
+            // 1. Trend Chart (Last 15 days)
+            const days = 15;
+            const labels = [];
+            const inboundData = [];
+            const outboundData = [];
+
+            for (let i = days - 1; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().split('T')[0];
+                labels.push(dateStr.slice(5));
+
+                let inSum = 0;
+                let outSum = 0;
+
+                transactions.forEach(tx => {
+                    if (tx.datetime && tx.datetime.startsWith(dateStr)) {
+                        if (tx.type === 'IN') inSum += Number(tx.qty);
+                        else if (tx.type === 'OUT') outSum += Number(tx.qty);
+                    }
+                });
+
+                inboundData.push(inSum);
+                outboundData.push(outSum);
+            }
+
+            const ctxTrend = document.getElementById('trendChart').getContext('2d');
+            trendChartInstance = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '進貨數量',
+                            data: inboundData,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: '銷貨數量',
+                            data: outboundData,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                }
+            });
+
+            // 2. Category Pie Chart
+            const stockMap = calculateProductStockMap();
+            const catStockMap = {};
+            products.forEach(p => {
+                const cat = p.category || '未分類';
+                if (!catStockMap[cat]) catStockMap[cat] = 0;
+                catStockMap[cat] += (stockMap[p.id] ? stockMap[p.id].stock : 0);
+            });
+
+            const ctxPie = document.getElementById('categoryPieChart').getContext('2d');
+            categoryPieChartInstance = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(catStockMap),
+                    datasets: [{
+                        data: Object.values(catStockMap),
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#64748b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
+                }
+            });
+        }
+
+        // --- TRANSACTION FORM LOGIC ---
+        function updateTxTypeUI() {
+            const typeVal = document.querySelector('input[name="txType"]:checked').value;
+            const inLabel = document.getElementById('type-label-inbound');
+            const outLabel = document.getElementById('type-label-outbound');
+
+            if (typeVal === 'IN') {
+                inLabel.className = "relative flex items-center justify-center p-3 border-2 rounded-xl cursor-pointer transition text-center font-bold border-emerald-500 text-emerald-700 bg-emerald-50/30";
+                outLabel.className = "relative flex items-center justify-center p-3 border-2 rounded-xl cursor-pointer transition text-center font-bold border-slate-200 text-slate-600";
+            } else {
+                outLabel.className = "relative flex items-center justify-center p-3 border-2 rounded-xl cursor-pointer transition text-center font-bold border-blue-500 text-blue-700 bg-blue-50/30";
+                inLabel.className = "relative flex items-center justify-center p-3 border-2 rounded-xl cursor-pointer transition text-center font-bold border-slate-200 text-slate-600";
+            }
+            onTxProductChange();
+        }
+
+        function onTxProductChange() {
+            const prodId = document.getElementById('tx-product-select').value;
+            const stockHint = document.getElementById('hint-stock-val');
+            const priceHint = document.getElementById('hint-price-val');
+            const priceInput = document.getElementById('tx-price');
+
+            if (!prodId) {
+                stockHint.innerText = '-';
+                priceHint.innerText = '-';
+                return;
+            }
+
+            const p = products.find(prod => prod.id === prodId);
+            const stockMap = calculateProductStockMap();
+            const currentStock = stockMap[prodId] ? stockMap[prodId].stock : 0;
+            const avgPrice = stockMap[prodId] ? Math.round(stockMap[prodId].avgPrice) : (p.defaultPrice || 0);
+
+            stockHint.innerText = currentStock;
+            priceHint.innerText = avgPrice;
+            if (!priceInput.value) {
+                priceInput.value = avgPrice;
+            }
+
+            calculateTxTotal();
+        }
+
+        function calculateTxTotal() {
+            const qty = Number(document.getElementById('tx-qty').value) || 0;
+            const price = Number(document.getElementById('tx-price').value) || 0;
+            const total = qty * price;
+
+            document.getElementById('tx-total-display').innerText = '$' + total.toLocaleString();
+
+            const typeVal = document.querySelector('input[name="txType"]:checked').value;
+            const prodId = document.getElementById('tx-product-select').value;
+            const errorBox = document.getElementById('tx-error-box');
+            const warningPill = document.getElementById('stock-warning-pill');
+
+            if (typeVal === 'OUT' && prodId) {
+                const stockMap = calculateProductStockMap();
+                const currentStock = stockMap[prodId] ? stockMap[prodId].stock : 0;
+
+                if (qty > currentStock) {
+                    errorBox.classList.remove('hidden');
+                    warningPill.classList.remove('hidden');
+                    document.getElementById('tx-error-msg').innerText = `目前庫存僅剩 ${currentStock}，銷貨數量 (${qty}) 已超出庫存限制！`;
+                    return false;
+                }
+            }
+
+            errorBox.classList.add('hidden');
+            warningPill.classList.add('hidden');
+            return true;
+        }
+
+        function handleTransactionSubmit(e) {
+            e.preventDefault();
+
+            const type = document.querySelector('input[name="txType"]:checked').value;
+            const productId = document.getElementById('tx-product-select').value;
+            const vendorId = document.getElementById('tx-vendor-select').value;
+            const qty = Number(document.getElementById('tx-qty').value);
+            const price = Number(document.getElementById('tx-price').value);
+            const datetime = document.getElementById('tx-datetime').value;
+            const operator = document.getElementById('tx-operator').value || '系統管理員';
+            const note = document.getElementById('tx-note').value;
+
+            if (!productId || !vendorId || qty <= 0) {
+                showToast('請完整填寫必填欄位與數量！', 'error');
+                return;
+            }
+
+            if (type === 'OUT') {
+                const stockMap = calculateProductStockMap();
+                const currentStock = stockMap[productId] ? stockMap[productId].stock : 0;
+                if (qty > currentStock) {
+                    showToast('庫存不足，無法執行銷貨出庫！', 'error');
+                    return;
+                }
+            }
+
+            const newTx = {
+                id: 'TX-' + Date.now().toString().slice(-6),
+                type,
+                productId,
+                vendorId,
+                qty,
+                price,
+                datetime,
+                operator,
+                note
+            };
+
+            transactions.unshift(newTx);
+            saveDataToStorage();
+            updateAllViews();
+
+            showToast(`單據 ${newTx.id} 登記成功！`, 'success');
+            resetTxForm();
+        }
+
+        function resetTxForm() {
+            document.getElementById('tx-form').reset();
+            initDateTimePicker();
+            updateTxTypeUI();
+            calculateTxTotal();
+        }
+
+        function quickPrepareInbound(productId) {
+            switchTab('transaction');
+            document.querySelector('input[name="txType"][value="IN"]').checked = true;
+            updateTxTypeUI();
+            document.getElementById('tx-product-select').value = productId;
+            onTxProductChange();
+        }
+
+        // --- INVENTORY TABLE RENDER ---
+        function renderInventoryTable() {
+            const stockMap = calculateProductStockMap();
+            const search = document.getElementById('inv-search').value.toLowerCase();
+            const categoryFilter = document.getElementById('inv-filter-category').value;
+            const statusFilter = document.getElementById('inv-filter-status').value;
+
+            const tbody = document.getElementById('inventory-table-body');
+            tbody.innerHTML = '';
+
+            let filtered = products.filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(search) || p.sku.toLowerCase().includes(search);
+                const matchesCat = categoryFilter ? p.category === categoryFilter : true;
+                return matchesSearch && matchesCat;
+            });
+
+            if (statusFilter !== 'ALL') {
+                filtered = filtered.filter(p => {
+                    const stock = stockMap[p.id] ? stockMap[p.id].stock : 0;
+                    if (statusFilter === 'LOW') return stock <= p.minStock;
+                    if (statusFilter === 'NORMAL') return stock > p.minStock;
+                    return true;
+                });
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-slate-400">查無符合條件的產品資料</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(p => {
+                const info = stockMap[p.id] || { inboundQty: 0, outboundQty: 0, stock: 0, avgPrice: 0 };
+                const isLow = info.stock <= p.minStock;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-4 py-3">
+                            <span class="font-mono text-xs font-bold text-slate-600 block">${p.sku}</span>
+                            <span class="text-xs text-slate-400">${p.category || '未分類'}</span>
+                        </td>
+                        <td class="px-4 py-3 font-semibold text-slate-800">${p.name}</td>
+                        <td class="px-4 py-3 text-right text-slate-500">${p.minStock}</td>
+                        <td class="px-4 py-3 text-right text-emerald-600 font-medium">+${info.inboundQty}</td>
+                        <td class="px-4 py-3 text-right text-blue-600 font-medium">-${info.outboundQty}</td>
+                        <td class="px-4 py-3 text-right">
+                            <span class="text-base font-bold ${isLow ? 'text-rose-600' : 'text-slate-800'}">${info.stock}</span>
+                        </td>
+                        <td class="px-4 py-3 text-right text-slate-600">$${Math.round(info.avgPrice).toLocaleString()}</td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold ${isLow ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}">
+                                ${isLow ? '低庫存警示' : '正常'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-center space-x-1">
+                            <button onclick="quickPrepareInbound('${p.id}')" title="快捷進貨" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded text-xs font-semibold">
+                                <i class="fa-solid fa-plus mr-0.5"></i>進貨
+                            </button>
+                            <button onclick="openProductModal('${p.id}')" title="編輯產品" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- HISTORY TABLE RENDER ---
+        function renderHistoryTable() {
+            const typeFilter = document.getElementById('hist-filter-type').value;
+            const startDate = document.getElementById('hist-start-date').value;
+            const endDate = document.getElementById('hist-end-date').value;
+            const prodFilter = document.getElementById('hist-filter-product').value;
+            const vendFilter = document.getElementById('hist-filter-vendor').value;
+
+            let filtered = [...transactions];
+
+            if (typeFilter !== 'ALL') {
+                filtered = filtered.filter(t => t.type === typeFilter);
+            }
+            if (startDate) {
+                filtered = filtered.filter(t => t.datetime >= startDate);
+            }
+            if (endDate) {
+                filtered = filtered.filter(t => t.datetime <= endDate + 'T23:59');
+            }
+            if (prodFilter !== 'ALL') {
+                filtered = filtered.filter(t => t.productId === prodFilter);
+            }
+            if (vendFilter !== 'ALL') {
+                filtered = filtered.filter(t => t.vendorId === vendFilter);
+            }
+
+            filtered.sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
+
+            document.getElementById('hist-count-info').innerText = `共 ${filtered.length} 筆交易紀錄`;
+
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-400">查無符合條件的交易歷史紀錄</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(tx => {
+                const p = products.find(prod => prod.id === tx.productId) || { name: '已刪除產品' };
+                const v = vendors.find(vend => vend.id === tx.vendorId) || { name: '已刪除對象' };
+                const isIN = tx.type === 'IN';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 text-xs sm:text-sm">
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="font-mono text-xs font-bold text-slate-700 block">${tx.id}</span>
+                            <span class="text-slate-400 text-xs">${formatDateTime(tx.datetime)}</span>
+                        </td>
+                        <td class="px-4 py-3 font-bold">
+                            <span class="px-2 py-0.5 rounded text-xs ${isIN ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">
+                                ${isIN ? '進貨 (IN)' : '銷貨 (OUT)'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 font-semibold text-slate-800">${p.name}</td>
+                        <td class="px-4 py-3 text-right font-bold">${tx.qty}</td>
+                        <td class="px-4 py-3 text-right text-slate-600">$${Number(tx.price).toLocaleString()}</td>
+                        <td class="px-4 py-3 text-right font-bold text-slate-800">$${(tx.qty * tx.price).toLocaleString()}</td>
+                        <td class="px-4 py-3 text-slate-600">${v.name}</td>
+                        <td class="px-4 py-3 text-slate-500">${tx.operator || '-'}</td>
+                        <td class="px-4 py-3 text-slate-400 text-xs">${tx.note || '-'}</td>
+                        <td class="px-4 py-3 text-center">
+                            <button onclick="deleteTransaction('${tx.id}')" title="刪除單據" class="text-slate-400 hover:text-rose-600 transition">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function deleteTransaction(txId) {
+            if (confirm(`確定要刪除單據 ${txId} 嗎？此操作將會連動還原庫存數據。`)) {
+                transactions = transactions.filter(t => t.id !== txId);
+                saveDataToStorage();
+                updateAllViews();
+                showToast('已成功刪除該筆交易紀錄', 'info');
+            }
+        }
+
+        // --- CSV EXPORT FUNCTION ---
+        function exportCSV() {
+            if (transactions.length === 0) {
+                showToast('目前無交易資料可供匯出！', 'warning');
+                return;
+            }
+
+            let csvContent = "\uFEFF"; // UTF-8 BOM
+            csvContent += "單號,日期時間,作業類型,產品名稱,數量,單價,總金額,廠商客戶,經辦人,備註\n";
+
+            transactions.forEach(tx => {
+                const p = products.find(prod => prod.id === tx.productId) || { name: '已刪除產品' };
+                const v = vendors.find(vend => vend.id === tx.vendorId) || { name: '已刪除對象' };
+                const typeText = tx.type === 'IN' ? '進貨' : '銷貨';
+                const total = tx.qty * tx.price;
+
+                const row = [
+                    tx.id,
+                    tx.datetime,
+                    typeText,
+                    `"${p.name.replace(/"/g, '""')}"`,
+                    tx.qty,
+                    tx.price,
+                    total,
+                    `"${v.name.replace(/"/g, '""')}"`,
+                    `"${(tx.operator || '').replace(/"/g, '""')}"`,
+                    `"${(tx.note || '').replace(/"/g, '""')}"`
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `進銷存交易清單_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('已成功下載 CSV 報表檔！', 'success');
+        }
+
+        // --- MASTER VENDORS MANAGEMENT ---
+        function renderMasterVendorsTable() {
+            const search = document.getElementById('vendor-search').value.toLowerCase();
+            const tbody = document.getElementById('master-vendor-table-body');
+            tbody.innerHTML = '';
+
+            const filtered = vendors.filter(v => v.name.toLowerCase().includes(search) || (v.contact && v.contact.toLowerCase().includes(search)));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">查無符合條件的廠商/客戶資料</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(v => {
+                let badgeClass = 'bg-blue-100 text-blue-800';
+                if (v.type === '供應商') badgeClass = 'bg-emerald-100 text-emerald-800';
+                if (v.type === '皆是') badgeClass = 'bg-purple-100 text-purple-800';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-4 py-3 font-semibold text-slate-800">${v.name}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-0.5 rounded text-xs font-bold ${badgeClass}">${v.type}</span>
+                        </td>
+                        <td class="px-4 py-3 text-slate-600">${v.contact || '-'}</td>
+                        <td class="px-4 py-3 text-slate-600">${v.phone || '-'}</td>
+                        <td class="px-4 py-3 text-slate-500 text-xs">${v.address || '-'}</td>
+                        <td class="px-4 py-3 text-center space-x-2">
+                            <button onclick="openVendorModal('${v.id}')" title="編輯" class="text-indigo-600 hover:text-indigo-800"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteVendor('${v.id}')" title="刪除" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash-can"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Product Modal
+        function openProductModal(productId = null) {
+            const modal = document.getElementById('product-modal');
+            modal.classList.remove('hidden');
+
+            if (productId) {
+                const p = products.find(prod => prod.id === productId);
+                document.getElementById('product-modal-title').innerText = '編輯產品資訊';
+                document.getElementById('p-modal-id').value = p.id;
+                document.getElementById('p-modal-sku').value = p.sku;
+                document.getElementById('p-modal-name').value = p.name;
+                document.getElementById('p-modal-category').value = p.category || '';
+                document.getElementById('p-modal-minstock').value = p.minStock;
+                document.getElementById('p-modal-price').value = p.defaultPrice || 1000;
+            } else {
+                document.getElementById('product-modal-title').innerText = '新增產品';
+                document.getElementById('product-form').reset();
+                document.getElementById('p-modal-id').value = '';
+            }
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+        }
+
+        function saveProductModal(e) {
+            e.preventDefault();
+            const id = document.getElementById('p-modal-id').value;
+            const sku = document.getElementById('p-modal-sku').value;
+            const name = document.getElementById('p-modal-name').value;
+            const category = document.getElementById('p-modal-category').value;
+            const minStock = Number(document.getElementById('p-modal-minstock').value) || 0;
+            const defaultPrice = Number(document.getElementById('p-modal-price').value) || 0;
+
+            if (id) {
+                const index = products.findIndex(p => p.id === id);
+                if (index !== -1) {
+                    products[index] = { ...products[index], sku, name, category, minStock, defaultPrice };
+                }
+            } else {
+                const newP = {
+                    id: 'P' + Date.now().toString().slice(-5),
+                    sku,
+                    name,
+                    category,
+                    minStock,
+                    defaultPrice
+                };
+                products.push(newP);
+            }
+
+            saveDataToStorage();
+            updateAllViews();
+            closeProductModal();
+            showToast('產品資料儲存成功！', 'success');
+        }
+
+        // Vendor Modal
+        function openVendorModal(vendorId = null) {
+            const modal = document.getElementById('vendor-modal');
+            modal.classList.remove('hidden');
+
+            if (vendorId) {
+                const v = vendors.find(vend => vend.id === vendorId);
+                document.getElementById('vendor-modal-title').innerText = '編輯廠商/客戶資訊';
+                document.getElementById('v-modal-id').value = v.id;
+                document.getElementById('v-modal-name').value = v.name;
+                document.getElementById('v-modal-type').value = v.type;
+                document.getElementById('v-modal-contact').value = v.contact || '';
+                document.getElementById('v-modal-phone').value = v.phone || '';
+                document.getElementById('v-modal-address').value = v.address || '';
+            } else {
+                document.getElementById('vendor-modal-title').innerText = '新增廠商/客戶';
+                document.getElementById('vendor-form').reset();
+                document.getElementById('v-modal-id').value = '';
+            }
+        }
+
+        function closeVendorModal() {
+            document.getElementById('vendor-modal').classList.add('hidden');
+        }
+
+        function saveVendorModal(e) {
+            e.preventDefault();
+            const id = document.getElementById('v-modal-id').value;
+            const name = document.getElementById('v-modal-name').value;
+            const type = document.getElementById('v-modal-type').value;
+            const contact = document.getElementById('v-modal-contact').value;
+            const phone = document.getElementById('v-modal-phone').value;
+            const address = document.getElementById('v-modal-address').value;
+
+            if (id) {
+                const index = vendors.findIndex(v => v.id === id);
+                if (index !== -1) {
+                    vendors[index] = { ...vendors[index], name, type, contact, phone, address };
+                }
+            } else {
+                const newV = {
+                    id: 'V' + Date.now().toString().slice(-5),
+                    name,
+                    type,
+                    contact,
+                    phone,
+                    address
+                };
+                vendors.push(newV);
+            }
+
+            saveDataToStorage();
+            updateAllViews();
+            closeVendorModal();
+            showToast('廠商/客戶資料儲存成功！', 'success');
+        }
+
+        function deleteVendor(id) {
+            if (confirm('確定要刪除該廠商/客戶資料嗎？')) {
+                vendors = vendors.filter(v => v.id !== id);
+                saveDataToStorage();
+                updateAllViews();
+                showToast('已成功刪除該筆資料', 'info');
+            }
+        }
+
+        // --- TOAST NOTIFICATION UTILITY ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            let bgClass = 'bg-slate-800 text-white';
+            let icon = 'fa-circle-info';
+
+            if (type === 'success') {
+                bgClass = 'bg-emerald-600 text-white';
+                icon = 'fa-circle-check';
+            } else if (type === 'error') {
+                bgClass = 'bg-rose-600 text-white';
+                icon = 'fa-triangle-exclamation';
+            } else if (type === 'warning') {
+                bgClass = 'bg-amber-600 text-white';
+                icon = 'fa-circle-exclamation';
+            }
+
+            toast.className = `${bgClass} p-3.5 rounded-lg shadow-lg text-sm font-medium flex items-center justify-between pointer-events-auto transition duration-300 transform translate-y-2 opacity-0`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid ${icon}"></i>
+                    <span>${message}</span>
+                </div>
+                <button onclick="this.parentElement.remove()" class="ml-3 text-slate-200 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function formatDateTime(datetimeLocalStr) {
+            if (!datetimeLocalStr) return '-';
+            return datetimeLocalStr.replace('T', ' ');
+        }
+    </script>
+</body>
+
+</html>
